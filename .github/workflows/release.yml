@@ -1,0 +1,13 @@
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+jobs:
+  release:
+    uses: devotica-labs/terraform-shared-config/.github/workflows/terraform-module-release.yml@26fb3202dc77a47e503c9149f402b144c8b54c12
+    with:
+      retag-floating-major: false

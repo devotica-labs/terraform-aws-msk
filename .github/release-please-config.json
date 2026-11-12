@@ -1,0 +1,9 @@
+{
+  "release-type": "terraform-module",
+  "packages": {
+    ".": {
+      "component": "terraform-aws-msk",
+      "include-component-in-tag": false
+    }
+  }
+}

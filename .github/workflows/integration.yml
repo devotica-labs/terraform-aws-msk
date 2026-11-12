@@ -1,0 +1,56 @@
+name: Sandbox integration (creates resources)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type DEPLOY-SANDBOX-MSK to authorize a charged sandbox lifecycle test"
+        required: true
+        type: string
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: msk-sandbox-integration
+  cancel-in-progress: false
+jobs:
+  integration:
+    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'DEPLOY-SANDBOX-MSK'
+    environment: sandbox-msk
+    runs-on: ubuntu-22.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: "1.11.4"
+          terraform_wrapper: false
+      - name: Check environment configuration
+        env:
+          ROLE: ${{ vars.AWS_OIDC_ROLE_ARN }}
+          ACCOUNT: ${{ vars.AWS_SANDBOX_ACCOUNT_ID }}
+          INPUTS_JSON: ${{ vars.MSK_INTEGRATION_TFVARS_JSON }}
+        run: |
+          test -n "$ROLE" && test -n "$ACCOUNT" && test -n "$INPUTS_JSON"
+          python -c 'import json,os,pathlib; v=json.loads(os.environ["INPUTS_JSON"]); assert v["environment"] == "sandbox"; pathlib.Path("integration.auto.tfvars.json").write_text(json.dumps(v))'
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_OIDC_ROLE_ARN }}
+          aws-region: ap-south-1
+          allowed-account-ids: ${{ vars.AWS_SANDBOX_ACCOUNT_ID }}
+          role-duration-seconds: 14400
+      - run: terraform init -backend=false -input=false
+      - name: Create, assert and destroy test resources
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          terraform test -test-directory=tests/integration -no-color 2>&1 | tee reports/integration.log
+      - name: Preserve cleanup evidence if lifecycle fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: msk-integration-recovery
+          path: |
+            reports/integration.log
+            **/*.tfstate*
+          retention-days: 7

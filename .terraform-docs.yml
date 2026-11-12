@@ -1,0 +1,13 @@
+formatter: markdown table
+# The README places Outputs before Inputs; Requirements and Resources are hand-written
+# sections, so only these two tables are generated.
+content: |-
+  {{ .Outputs }}
+
+  {{ .Inputs }}
+output:
+  file: README.md
+  mode: inject
+sort:
+  enabled: true
+  by: name

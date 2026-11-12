@@ -1,0 +1,28 @@
+name: Mock plan policy gate
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  opa:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: "1.11.4"
+          terraform_wrapper: false
+      - run: terraform init -backend=false -input=false
+      - run: python scripts/export_mock_plan.py
+      - name: Install conftest with release checksum verification
+        run: |
+          set -euo pipefail
+          base=https://github.com/open-policy-agent/conftest/releases/download/v0.56.0
+          curl -fsSLO "$base/conftest_0.56.0_Linux_x86_64.tar.gz"
+          curl -fsSLO "$base/checksums.txt"
+          grep ' conftest_0.56.0_Linux_x86_64.tar.gz$' checksums.txt | sha256sum -c -
+          tar -xzf conftest_0.56.0_Linux_x86_64.tar.gz conftest
+      - run: ./conftest verify --policy policies
+      - run: ./conftest test reports/mock-plan.json --policy policies
+      - name: Reject provider blocks in the module root
+        run: ./conftest test --parser hcl2 --namespace module_files --policy policies ./*.tf
