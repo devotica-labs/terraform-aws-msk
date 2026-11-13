@@ -32,7 +32,7 @@ jobs:
         run: |
           test -n "$ROLE" && test -n "$ACCOUNT" && test -n "$INPUTS_JSON"
           python -c 'import json,os,pathlib; v=json.loads(os.environ["INPUTS_JSON"]); assert v["environment"] == "sandbox"; pathlib.Path("integration.auto.tfvars.json").write_text(json.dumps(v))'
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_OIDC_ROLE_ARN }}
           aws-region: ap-south-1
