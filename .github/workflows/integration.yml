@@ -47,7 +47,7 @@ jobs:
           terraform test -test-directory=tests/integration -no-color 2>&1 | tee reports/integration.log
       - name: Preserve cleanup evidence if lifecycle fails
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: msk-integration-recovery
           path: |
