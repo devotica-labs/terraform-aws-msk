@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0 (2026-11-13)
+
+
+### Features
+
+* initial AWS MSK module ([da4c749](https://github.com/devotica-labs/terraform-aws-msk/commit/da4c749430f97ee265e396814b8d2239368472e0))
+
 ## [2.0.0] - 2026-11-12
 
 ### Breaking Changes
