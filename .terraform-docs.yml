@@ -1,13 +1,47 @@
 formatter: markdown table
-# The README places Outputs before Inputs; Requirements and Resources are hand-written
-# sections, so only these two tables are generated.
+
+sections:
+  show: [requirements, providers, resources, inputs, outputs]
+
 content: |-
+  {{ .Header }}
+
+  ## Usage
+
+  ### Basic
+
+  ```hcl
+  {{ include "examples/basic/main.tf" }}
+  ```
+
+  ### Complete
+
+  ```hcl
+  {{ include "examples/complete/main.tf" }}
+  ```
+
+  {{ .Requirements }}
+  {{ .Providers }}
+  {{ .Resources }}
+  {{ .Inputs }}
   {{ .Outputs }}
 
-  {{ .Inputs }}
 output:
   file: README.md
   mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
 sort:
   enabled: true
-  by: name
+  by: required
+
+settings:
+  anchor: true
+  default: true
+  description: true
+  required: true
+  sensitive: true
+  type: true
